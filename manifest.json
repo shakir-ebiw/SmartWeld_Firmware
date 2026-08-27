@@ -1,4 +1,4 @@
 {
-  "version": "1.0.1",
-  "firmware": "https://raw.githubusercontent.com/shakir-ebiw/SmartWeld_Firmware/main/fimware/smartweld_ESP8266_v1.0.1.bin"
+  "version": "2.0.1",
+  "firmware": "https://raw.githubusercontent.com/shakir-ebiw/SmartWeld_Firmware/main/fimware/smartweld_ESP8266_v2.0.1.bin"
 }
