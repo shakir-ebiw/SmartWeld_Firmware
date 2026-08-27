@@ -6,15 +6,13 @@
 #define WIFI_SSID       "EBIW-AP"
 #define WIFI_PASSWORD   "1234567890"
 
-#define FW_VERSION      "1.0.0"
+#define FW_VERSION      "2.0."
 
-// IMPORTANT:
-// Put your GitHub manifest URL here.
-// We will get this URL in Step 2.
+// GitHub manifest URL
 const char* manifestURL =
-    "https://raw.githubusercontent.com/shakir-ebiw/SmartWeld_Firmware/refs/heads/main/manifest.json?token=GHSAT0AAAAAAEGWJ5EZFJGBK3WN77MEMQW22UP5ZJA";
+    "https://raw.githubusercontent.com/shakir-ebiw/SmartWeld_Firmware/main/manifest.json";
 
-// 1 week
+// Check OTA every 1 week
 #define OTA_CHECK_INTERVAL 604800000UL
 
 unsigned long lastOTACheck = 0;
@@ -141,11 +139,13 @@ void checkForOTA()
 
     http.end();
 
-    Serial.println("Manifest:");
+    Serial.println("Manifest received:");
     Serial.println(payload);
 
 
+    // =================================================
     // Parse JSON
+    // =================================================
 
     StaticJsonDocument<512> doc;
 
@@ -166,32 +166,61 @@ void checkForOTA()
         doc["firmware"].as<String>();
 
 
-    Serial.print("Current version: ");
+    // =================================================
+    // Display Version Information
+    // =================================================
+
+    Serial.println();
+    Serial.println("------------------------------");
+    Serial.print("Current Firmware : ");
     Serial.println(FW_VERSION);
 
-    Serial.print("Latest version: ");
+    Serial.print("Latest Firmware  : ");
     Serial.println(latestVersion);
+    Serial.println("------------------------------");
 
 
-    // Check version
+    // =================================================
+    // Check Version
+    // =================================================
 
     if (!isNewVersion(FW_VERSION, latestVersion))
     {
-        Serial.println("No new firmware.");
+        Serial.println();
+        Serial.println("Firmware is already up to date.");
+        Serial.println("No OTA update required.");
+
         return;
     }
 
 
-    Serial.println();
-    Serial.println("NEW FIRMWARE FOUND!");
+    // =================================================
+    // NEW VERSION AVAILABLE
+    // =================================================
 
-    Serial.print("Firmware URL: ");
+    Serial.println();
+    Serial.println("********************************");
+    Serial.println(" NEW FIRMWARE AVAILABLE!");
+    Serial.println("********************************");
+
+    Serial.print("Current Version : ");
+    Serial.println(FW_VERSION);
+
+    Serial.print("New Version     : ");
+    Serial.println(latestVersion);
+
+    Serial.println();
+    Serial.println("Firmware URL:");
     Serial.println(firmwareURL);
 
+    Serial.println();
+    Serial.println("Downloading firmware...");
+    Serial.println("Download started...");
 
-    // OTA
 
-    Serial.println("Starting OTA...");
+    // =================================================
+    // OTA UPDATE
+    // =================================================
 
     ESPhttpUpdate.rebootOnUpdate(true);
 
@@ -199,27 +228,48 @@ void checkForOTA()
         ESPhttpUpdate.update(client, firmwareURL);
 
 
+    // =================================================
+    // OTA RESULT
+    // =================================================
+
     switch (result)
     {
         case HTTP_UPDATE_FAILED:
 
+            Serial.println();
+            Serial.println("********************************");
+            Serial.println(" OTA UPDATE FAILED");
+            Serial.println("********************************");
+
             Serial.printf(
-                "OTA FAILED\nError: %d\n%s\n",
-                ESPhttpUpdate.getLastError(),
-                ESPhttpUpdate.getLastErrorString().c_str()
+                "Error Code: %d\n",
+                ESPhttpUpdate.getLastError()
+            );
+
+            Serial.print("Error Message: ");
+            Serial.println(
+                ESPhttpUpdate.getLastErrorString()
             );
 
             break;
 
+
         case HTTP_UPDATE_NO_UPDATES:
 
-            Serial.println("No update.");
+            Serial.println();
+            Serial.println("No update available.");
 
             break;
 
+
         case HTTP_UPDATE_OK:
 
-            Serial.println("OTA successful.");
+            Serial.println();
+            Serial.println("********************************");
+            Serial.println(" OTA UPDATE SUCCESSFUL");
+            Serial.println("********************************");
+
+            Serial.println("ESP8266 will restart...");
 
             break;
     }
@@ -246,7 +296,10 @@ void setup()
 
     connectWiFi();
 
+
+    // =================================================
     // Check OTA immediately after boot
+    // =================================================
 
     if (WiFi.status() == WL_CONNECTED)
     {
@@ -273,7 +326,9 @@ void loop()
     delay(5000);
 
 
-    // Check once every week
+    // =================================================
+    // Check OTA once every week
+    // =================================================
 
     if (millis() - lastOTACheck >= OTA_CHECK_INTERVAL)
     {
