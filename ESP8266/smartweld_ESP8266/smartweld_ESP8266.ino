@@ -6,7 +6,7 @@
 #define WIFI_SSID       "EBIW-AP"
 #define WIFI_PASSWORD   "1234567890"
 
-#define FW_VERSION      "2.0.2"
+#define FW_VERSION      "2.0.3"
 
 // GitHub manifest URL
 const char* manifestURL =
